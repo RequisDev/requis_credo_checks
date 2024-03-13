@@ -36,12 +36,12 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObject do
   """
   @explanation [check: @moduledoc]
 
-  @check_params [:mutation_suffix, :field_suffix]
+  @check_options [:mutation_suffix, :field_suffix]
 
   @doc false
   @impl Credo.Check
   def run(source_file, params \\ []) do
-    {options, params} = Keyword.split(params, @check_params)
+    {options, params} = Keyword.split(params, @check_options)
 
     object_suffix = Keyword.get(options, :mutation_suffix, "_mutations")
     field_suffix = Keyword.get(options, :field_suffix, "_payload")

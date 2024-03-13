@@ -1,4 +1,4 @@
-defmodule RequisCredoChecks.AbsintheObjectPrefixMatchesModule do
+defmodule RequisCredoChecks.AbsintheObjectPrefix do
   use Credo.Check,
     base_priority: :high,
     category: :refactor
