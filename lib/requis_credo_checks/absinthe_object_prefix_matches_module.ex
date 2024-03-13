@@ -1,9 +1,8 @@
-defmodule RequisCredoChecks.AbsintheObjectNamePrefix do
+defmodule RequisCredoChecks.AbsintheObjectPrefixMatchesModule do
   use Credo.Check,
     base_priority: :high,
-    category: :readability
+    category: :refactor
 
-  @issue_message "names must be prefixed by the module name"
   @moduledoc """
   Prefix your object names with the module's suffix name
 
@@ -37,25 +36,24 @@ defmodule RequisCredoChecks.AbsintheObjectNamePrefix do
     issues
   ) do
     prefix = module_aliases |> List.last() |> Atom.to_string() |> Macro.underscore()
-    regex = Regex.compile!("^#{prefix}_")
+    regex = Regex.compile!("^#{prefix}")
 
     lines =
       contents
       |> Enum.map(fn
         {:object, meta, [name, _]} ->
           if !Regex.match?(regex, Atom.to_string(name)) do
-            {:object, meta[:line]}
+            meta[:line]
           end
 
         {:input_object, meta, [name, _]} ->
           if !Regex.match?(regex, Atom.to_string(name)) do
-            {:input_object, meta[:line]}
+            meta[:line]
           end
 
         _ -> nil
       end)
       |> Enum.reject(&is_nil/1)
-      |> recurse_combinations()
 
     {ast, issues ++ lines}
   end
@@ -65,23 +63,9 @@ defmodule RequisCredoChecks.AbsintheObjectNamePrefix do
     {ast, issues}
   end
 
-  defp recurse_combinations(combos, lines \\ [])
-
-  defp recurse_combinations([], lines) do
-    lines
-  end
-
-  defp recurse_combinations([{:object, line} | tail], lines) do
-    recurse_combinations(tail, [line | lines])
-  end
-
-  defp recurse_combinations([{:input_object, line} | tail], lines) do
-    recurse_combinations(tail, [line | lines])
-  end
-
   defp issue_for(line, issue_meta) do
     format_issue(issue_meta,
-      message: @issue_message,
+      message: "names must be prefixed by the module name",
       line_no: line
     )
   end
