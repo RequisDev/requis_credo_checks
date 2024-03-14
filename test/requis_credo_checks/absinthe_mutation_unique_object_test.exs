@@ -14,8 +14,9 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObjectTest do
           resolve fn args, _ -> {:ok, "pong"} end
         end
 
-        field :hello_world, :string do
-          resolve fn args, _ -> {:ok, "Hello world!"} end
+        @desc "description"
+        field :pings, list_of(:string) do
+          resolve fn args, _ -> {:ok, ["pong", "pong"]} end
         end
       end
 

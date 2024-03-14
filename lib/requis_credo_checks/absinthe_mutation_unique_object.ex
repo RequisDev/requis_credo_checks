@@ -70,7 +70,7 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObject do
   ) do
     lines =
       contents
-      |> traverse_mutations_fields_ast(object_suffix, field_suffix)
+      |> traverse_mutations_ast(object_suffix, field_suffix)
       |> Enum.reject(&is_nil/1)
 
     {ast, issues ++ lines}
@@ -81,29 +81,34 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObject do
     {ast, issues}
   end
 
-  defp traverse_mutations_fields_ast(contents, object_suffix, field_suffix) do
+  defp traverse_mutations_ast(contents, object_suffix, field_suffix) do
     case find_mutations_ast(contents, object_suffix) do
       nil ->
         []
 
-      {:object, _meta, [_object_name, [{:do, {:__block__, _, mutation_fields_ast}}]]} ->
-        traverse_fields_ast(mutation_fields_ast, field_suffix)
+      {:object, _meta, [_object_name, [{:do, {:__block__, _, mutation_contents}}]]} ->
+        traverse_mutation_content_ast(mutation_contents, field_suffix)
 
-      {:object, _meta, [_object_name, [{:do, mutation_field_ast}]]} ->
-        traverse_fields_ast([mutation_field_ast], field_suffix)
+      {:object, _meta, [_object_name, [{:do, mutation_content}]]} ->
+        traverse_mutation_content_ast([mutation_content], field_suffix)
 
     end
   end
 
-  defp traverse_fields_ast(mutation_fields_ast, field_suffix) do
-    Enum.map(mutation_fields_ast, fn
-      {:field, meta, [field_name, field_type, _]} ->
+  defp traverse_mutation_content_ast(mutation_contents, field_suffix) do
+    Enum.map(mutation_contents, fn
+      {:field, meta, [field_name, field_type, _]} when is_atom(field_type) ->
         field_name = Atom.to_string(field_name)
         field_type = Atom.to_string(field_type)
 
         if field_type !== (field_name <> field_suffix) do
           meta[:line]
         end
+
+      {:field, meta, _} ->
+        meta[:line]
+
+      _ -> nil
     end)
   end
 
