@@ -3,6 +3,8 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
     base_priority: :high,
     category: :refactor
 
+  alias RequisCredoChecks.AbsintheHelpers
+
   @moduledoc """
   Use a single, required, unique, input object type as an argument for
   easier mutation execution on the client.
@@ -81,19 +83,19 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
   end
 
   defp traverse(
-    {
-      :defmodule,
-      _,
-      [
-        {:__aliases__, _, _module_aliases},
-        [
-          do: {:__block__, [], contents}
-        ]
-      ]
-    } = ast,
-    issues,
-    object_suffix
-  ) do
+         {
+           :defmodule,
+           _,
+           [
+             {:__aliases__, _, _module_aliases},
+             [
+               do: {:__block__, [], contents}
+             ]
+           ]
+         } = ast,
+         issues,
+         object_suffix
+       ) do
     lines =
       contents
       |> traverse_ast(object_suffix)
@@ -123,7 +125,7 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
   end
 
   defp traverse_ast(contents, object_suffix) do
-    case find_mutations_ast(contents, object_suffix) do
+    case AbsintheHelpers.find_mutations_ast(contents, object_suffix) do
       nil ->
         []
 
@@ -156,21 +158,6 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
 
       _ ->
         nil
-    end)
-  end
-
-  defp find_mutations_ast(contents, suffix) do
-    suffix = String.reverse(suffix)
-
-    Enum.find(contents, fn
-      {:object, _meta, [object_name | _]} when is_atom(object_name) ->
-        object_name
-        |> Atom.to_string()
-        |> String.reverse()
-        |> String.starts_with?(suffix)
-
-      _ ->
-        false
     end)
   end
 
