@@ -3,6 +3,8 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObject do
     base_priority: :high,
     category: :refactor
 
+  alias RequisCredoChecks.AbsintheHelpers
+
   @moduledoc """
   Use a unique payload type for each mutation and add the mutation’s output
   as a field to that payload type.
@@ -76,20 +78,20 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObject do
   end
 
   defp traverse(
-    {
-      :defmodule,
-      _,
-      [
-        {:__aliases__, _, _module_aliases},
-        [
-          do: {:__block__, [], contents}
-        ]
-      ]
-    } = ast,
-    issues,
-    object_suffix,
-    field_suffix
-  ) do
+         {
+           :defmodule,
+           _,
+           [
+             {:__aliases__, _, _module_aliases},
+             [
+               do: {:__block__, [], contents}
+             ]
+           ]
+         } = ast,
+         issues,
+         object_suffix,
+         field_suffix
+       ) do
     lines =
       contents
       |> traverse_ast(object_suffix, field_suffix)
@@ -104,7 +106,7 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObject do
   end
 
   defp traverse_ast(contents, object_suffix, field_suffix) do
-    case find_mutations_ast(contents, object_suffix) do
+    case AbsintheHelpers.find_mutations_ast(contents, object_suffix) do
       nil ->
         []
 
@@ -131,21 +133,6 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObject do
 
       _ ->
         nil
-    end)
-  end
-
-  defp find_mutations_ast(contents, suffix) do
-    suffix = String.reverse(suffix)
-
-    Enum.find(contents, fn
-      {:object, _meta, [object_name | _]} when is_atom(object_name) ->
-        object_name
-        |> Atom.to_string()
-        |> String.reverse()
-        |> String.starts_with?(suffix)
-
-      _ ->
-        false
     end)
   end
 

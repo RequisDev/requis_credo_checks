@@ -47,7 +47,45 @@ Add some or all of these checks under the checks key in .credo.exs
 mix credo
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/requis_credo_checks>.
+## Contributing
+
+We welcome contributions to this library. Bear in mind however that new checks can be very controversial as they have a large impact on developer experience. We therefore recommend that you open an issue to discuss a new check before beginning work on a new one.
+
+### Getting set up locally
+
+1. Consider opening an issue for discussion
+2. Fork and clone this repository on GitHub
+3. Install elixir and erlang versions with asdf
+
+```
+asdf install
+```
+
+4. Fetch dependencies
+
+```
+mix deps.get
+```
+
+5. Run the test suite
+
+```
+mix check
+```
+
+6. Use your work in another project
+
+It is an excellent idea to not just write tests, but to also run your check against another codebase.
+
+Include your cloned project under deps in the mix.exs of your other codebase
+
+```
+{:requis_credo_checks, path: "../requis_credo_checks/"}
+```
+
+And fetch your dependencies to pull in the local version you are working on
+
+```
+mix deps.get
+```
 

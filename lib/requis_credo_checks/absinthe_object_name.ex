@@ -49,18 +49,18 @@ defmodule RequisCredoChecks.AbsintheObjectName do
   end
 
   defp traverse(
-    {
-      :defmodule,
-      _,
-      [
-        {:__aliases__, _, module_aliases},
-        [
-          do: {:__block__, [], contents}
-        ]
-      ]
-    } = ast,
-    issues
-  ) do
+         {
+           :defmodule,
+           _,
+           [
+             {:__aliases__, _, module_aliases},
+             [
+               do: {:__block__, [], contents}
+             ]
+           ]
+         } = ast,
+         issues
+       ) do
     prefix = module_aliases |> List.last() |> Atom.to_string() |> Macro.underscore()
     regex = Regex.compile!("^#{prefix}")
 

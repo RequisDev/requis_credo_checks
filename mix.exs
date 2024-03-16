@@ -10,7 +10,6 @@ defmodule RequisCredoChecks.MixProject do
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-
       test_coverage: [tool: ExCoveralls],
       dialyzer: [
         plt_add_apps: [:ex_unit, :mix, :credo],
@@ -51,11 +50,12 @@ defmodule RequisCredoChecks.MixProject do
   defp deps do
     [
       {:ex_check, "~> 0.12", only: :test, runtime: false},
-      {:credo, "~> 1.4", runtime: false},
       {:dialyxir, "~> 1.0", only: :test, runtime: false},
       {:excoveralls, "~> 0.13", only: :test, runtime: false},
       {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
       {:doctor, "~> 0.21.0", only: :test},
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:blitz_credo_checks, "~> 0.1", only: [:dev, :test], runtime: false},
       {:absinthe, "~> 1.7", optional: true}
     ]
   end
