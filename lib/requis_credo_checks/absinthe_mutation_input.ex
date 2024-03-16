@@ -125,7 +125,7 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
   end
 
   defp traverse_ast(contents, object_suffix) do
-    case AbsintheHelpers.find_mutations_ast(contents, object_suffix) do
+    case AbsintheHelpers.find_object_ast(contents, object_suffix) do
       nil ->
         []
 

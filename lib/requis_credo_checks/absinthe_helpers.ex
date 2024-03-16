@@ -2,8 +2,8 @@ defmodule RequisCredoChecks.AbsintheHelpers do
   @moduledoc false
 
   @doc false
-  @spec find_mutations_ast(term, String.t()) :: nil | term
-  def find_mutations_ast(contents, suffix) do
+  @spec find_object_ast(term, String.t()) :: nil | term
+  def find_object_ast(contents, suffix) do
     suffix = String.reverse(suffix)
 
     Enum.find(contents, fn
