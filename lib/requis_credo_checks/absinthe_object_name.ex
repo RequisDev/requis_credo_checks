@@ -1,14 +1,40 @@
-defmodule RequisCredoChecks.AbsintheObjectPrefix do
+defmodule RequisCredoChecks.AbsintheObjectName do
   use Credo.Check,
     base_priority: :high,
     category: :refactor
 
   @moduledoc """
-  Prefix your object names with the module's suffix name
+  Use a noun before the verb when naming objects.
 
-  This can increase readability by
-  a.) Organizing similar objects into one module
-  b.) Grouping similar objects together by the same prefix which makes your graphql api easier to navigate.
+  Mutations represent an action and can start with an action word that
+  best describes what the mutation does for example `createUser`.
+
+  This naming convention prefers to write names the other way around,
+  for example `userCreate` over `createUser`.
+
+  This is useful for schemas where you want to order the mutations
+  alphabetically.
+
+  For example:
+
+  ```elixir
+  defmodule Account do
+    @moduledoc false
+    use Absinthe.Schema.Notation
+
+    ...
+
+    object :account_mutations do
+      field :account_create, :account_create_payload do
+        ...
+      end
+    end
+  end
+  ```
+
+  This naming convention is enforced by using the last alias of your module name.
+  If your module is named `Example.Session`, all objects in that module must start
+  with `session`.
   """
   @explanation [check: @moduledoc]
 
@@ -51,7 +77,8 @@ defmodule RequisCredoChecks.AbsintheObjectPrefix do
             meta[:line]
           end
 
-        _ -> nil
+        _ ->
+          nil
       end)
       |> Enum.reject(&is_nil/1)
 
@@ -65,7 +92,7 @@ defmodule RequisCredoChecks.AbsintheObjectPrefix do
 
   defp issue_for(line, issue_meta) do
     format_issue(issue_meta,
-      message: "names must be prefixed by the module name",
+      message: "object name must be prefixed by the module name.",
       line_no: line
     )
   end

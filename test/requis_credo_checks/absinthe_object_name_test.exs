@@ -1,7 +1,7 @@
-defmodule RequisCredoChecks.AbsintheObjectPrefixTest do
+defmodule RequisCredoChecks.AbsintheObjectNameTest do
   use Credo.Test.Case, async: true
 
-  alias RequisCredoChecks.AbsintheObjectPrefix
+  alias RequisCredoChecks.AbsintheObjectName
 
   test "rejects object names that are not prefixed by module" do
     """
@@ -48,7 +48,7 @@ defmodule RequisCredoChecks.AbsintheObjectPrefixTest do
     end
     """
     |> to_source_file()
-    |> AbsintheObjectPrefix.run([])
+    |> AbsintheObjectName.run([])
     |> assert_issues()
   end
 
@@ -97,7 +97,7 @@ defmodule RequisCredoChecks.AbsintheObjectPrefixTest do
     end
     """
     |> to_source_file()
-    |> AbsintheObjectPrefix.run([])
+    |> AbsintheObjectName.run([])
     |> refute_issues()
   end
 end

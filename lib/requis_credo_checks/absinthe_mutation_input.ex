@@ -23,6 +23,44 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
   deprecate sections of the API and add new names in a conflict free
   space instead of fighting to find a new name on a cluttered
   collision-rich object type.
+
+  For account:
+
+  ```elixir
+  defmodule Account do
+    @moduledoc false
+    use Absinthe.Schema.Notation
+
+    input_object :user_create_input do
+      field :timezone, non_null(:string)
+    end
+
+    input_object :account_create_input do
+      field :email, non_null(:string)
+      field :user, non_null(:user_create_input)
+    end
+
+    object :account do
+      field :email, :string
+    end
+
+    object :account_create_payload do
+      field :account, :account
+    end
+
+    object :account_mutations do
+      field :account_create, :account_create_payload do
+        arg :input, non_null(:account_create_input)
+
+        resolve fn %{input: input}, _resolution ->
+          with {:ok, account} <- Accounts.create_account(input) do
+            {:ok, %{account: account}}
+          end
+        end
+      end
+    end
+  end
+  ```
   """
   @explanation [check: @moduledoc]
 
@@ -65,8 +103,8 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
     {ast, issues ++ lines}
   end
 
-   # Non-failing function head
-   defp traverse(ast, issues, _) do
+  # Non-failing function head
+  defp traverse(ast, issues, _) do
     {ast, issues}
   end
 
@@ -94,7 +132,6 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
 
       {:object, _meta, [_object_name, [{:do, mutation_content}]]} ->
         traverse_field_ast([mutation_content])
-
     end
   end
 
@@ -112,7 +149,6 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
 
             _, acc ->
               acc
-
           end)
           |> :lists.reverse()
 
@@ -120,7 +156,6 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
 
       _ ->
         nil
-
     end)
   end
 
@@ -134,7 +169,8 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
         |> String.reverse()
         |> String.starts_with?(suffix)
 
-      _ -> false
+      _ ->
+        false
     end)
   end
 

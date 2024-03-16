@@ -1,7 +1,7 @@
 defmodule RequisCredoChecks.MixProject do
   use Mix.Project
 
-  @version  "0.1.0"
+  @version "0.1.0"
 
   def project do
     [
@@ -10,13 +10,6 @@ defmodule RequisCredoChecks.MixProject do
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      # Hex
-      description: "Custom Credo checks used by the Requis Backend Elixir team",
-      package: package(),
-
-      # Docs
-      name: "RequisCredoChecks",
-      docs: docs(),
 
       test_coverage: [tool: ExCoveralls],
       dialyzer: [
@@ -36,6 +29,14 @@ defmodule RequisCredoChecks.MixProject do
         "coveralls.json": :test,
         "coveralls.html": :test
       ],
+
+      # Hex
+      description: "Custom Credo checks used by the Requis Backend Elixir team",
+      package: package(),
+
+      # Docs
+      name: "RequisCredoChecks",
+      docs: docs()
     ]
   end
 
@@ -55,7 +56,6 @@ defmodule RequisCredoChecks.MixProject do
       {:excoveralls, "~> 0.13", only: :test, runtime: false},
       {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
       {:doctor, "~> 0.21.0", only: :test},
-
       {:absinthe, "~> 1.7", optional: true}
     ]
   end

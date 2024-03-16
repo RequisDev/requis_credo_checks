@@ -18,25 +18,39 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObject do
   mutation. Preemptively removing design space is not something you want to
   do when designing a versionless GraphQL API.
 
-  For example, instead of this:
+  For example:
 
   ```elixir
-  defmodule YourModule do
-    object :example_mutations do
-      field :ping, :string do
-        resolve fn args, _ -> {:ok, "pong"} end
-      end
+  defmodule Account do
+    @moduledoc false
+    use Absinthe.Schema.Notation
+
+    input_object :user_create_input do
+      field :timezone, non_null(:string)
     end
-  end
-  ```
 
-  You should do this:
+    input_object :account_create_input do
+      field :email, non_null(:string)
+      field :user, non_null(:user_create_input)
+    end
 
-  ```elixir
-  defmodule YourModule do
-    object :example_mutations do
-      field :ping, :ping_payload do
-        resolve fn args, _ -> {:ok, %{text: "pong"}} end
+    object :account do
+      field :email, :string
+    end
+
+    object :account_create_payload do
+      field :account, :account
+    end
+
+    object :account_mutations do
+      field :account_create, :account_create_payload do
+        arg :input, non_null(:account_create_input)
+
+        resolve fn %{input: input}, _resolution ->
+          with {:ok, account} <- Accounts.create_account(input) do
+            {:ok, %{account: account}}
+          end
+        end
       end
     end
   end
@@ -99,7 +113,6 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObject do
 
       {:object, _meta, [_object_name, [{:do, mutation_content}]]} ->
         traverse_field_ast([mutation_content], field_suffix)
-
     end
   end
 
@@ -109,14 +122,15 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObject do
         field_name = Atom.to_string(field_name)
         field_type = Atom.to_string(field_type)
 
-        if field_type !== (field_name <> field_suffix) do
+        if field_type !== field_name <> field_suffix do
           meta[:line]
         end
 
       {:field, meta, _} ->
         meta[:line]
 
-      _ -> nil
+      _ ->
+        nil
     end)
   end
 
@@ -130,7 +144,8 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObject do
         |> String.reverse()
         |> String.starts_with?(suffix)
 
-      _ -> false
+      _ ->
+        false
     end)
   end
 

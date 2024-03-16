@@ -1,5 +1,3 @@
 defmodule RequisCredoChecks do
-  @moduledoc """
-  Documentation for `RequisCredoChecks`.
-  """
+  @moduledoc false
 end

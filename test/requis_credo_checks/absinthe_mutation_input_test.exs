@@ -105,7 +105,7 @@ defmodule RequisCredoChecks.AbsintheMutationInputTest do
     end
     """
     |> to_source_file()
-    |> AbsintheMutationInput.run([mutation_suffix: "_mutations_test"])
+    |> AbsintheMutationInput.run(mutation_suffix: "_mutations_test")
     |> refute_issues()
   end
 end

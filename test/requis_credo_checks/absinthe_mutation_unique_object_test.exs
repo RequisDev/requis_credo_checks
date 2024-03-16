@@ -75,7 +75,10 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObjectTest do
     end
     """
     |> to_source_file()
-    |> AbsintheMutationUniqueObject.run([mutation_suffix: "_mutations_test", field_suffix: "_response"])
+    |> AbsintheMutationUniqueObject.run(
+      mutation_suffix: "_mutations_test",
+      field_suffix: "_response"
+    )
     |> refute_issues()
   end
 end
