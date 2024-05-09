@@ -61,11 +61,7 @@ defmodule RequisCredoChecks.AbsintheObjectPrefix do
   @doc false
   @impl Credo.Check
   def run(source_file, params \\ []) do
-    exclude_modules =
-      params
-      |> Params.get(:exclude_modules, __MODULE__)
-      |> List.wrap()
-      |> Enum.map(&List.wrap/1)
+    exclude_modules = params |> Params.get(:exclude_modules, __MODULE__) |> Enum.map(&List.wrap/1)
 
     issue_meta = IssueMeta.for(source_file, params)
 
@@ -124,7 +120,7 @@ defmodule RequisCredoChecks.AbsintheObjectPrefix do
 
   defp issue_for(line, issue_meta) do
     format_issue(issue_meta,
-      message: "object name has an invalid prefix.",
+      message: "object name not prefixed by module.",
       line_no: line
     )
   end
