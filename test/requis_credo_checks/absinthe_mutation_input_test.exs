@@ -3,7 +3,7 @@ defmodule RequisCredoChecks.AbsintheMutationInputTest do
 
   alias RequisCredoChecks.AbsintheMutationInput
 
-  test "rejects mutations that do not have a unique payload object" do
+  test "rejects mutations that do not have one non-null input object" do
     """
     defmodule TestModule.BadMock do
       @moduledoc false
@@ -13,24 +13,7 @@ defmodule RequisCredoChecks.AbsintheMutationInputTest do
         field :message, non_null(:string)
       end
 
-      input_object :another_example_input do
-        field :number, :integer
-      end
-
       object :example_mutations do
-        field :has_multiple_inputs, :string do
-          arg :input, non_null(:example_input)
-          arg :another_input, :another_example_input
-
-          resolve fn args, _ -> {:ok, args.input.message} end
-        end
-
-        field :should_be_non_null, :string do
-          arg :input, :example_input
-
-          resolve fn args, _ -> {:ok, args.input.message} end
-        end
-
         field :bad_name, :string do
           arg :incorrect_name, non_null(:example_input)
 
@@ -43,11 +26,11 @@ defmodule RequisCredoChecks.AbsintheMutationInputTest do
     end
     """
     |> to_source_file()
-    |> AbsintheMutationInput.run([])
-    |> assert_issues()
+    |> AbsintheMutationInput.run()
+    |> assert_issue()
   end
 
-  test "allows objects prefixed by module" do
+  test "allows mutations that has one non-null input object called input" do
     """
     defmodule TestModule.Mock do
       @moduledoc false
@@ -62,7 +45,7 @@ defmodule RequisCredoChecks.AbsintheMutationInputTest do
       end
 
       object :mock_mutations do
-        field :echo, :ectho_payload do
+        field :echo, :ecto_payload do
           arg :input, non_null(:echo_input)
 
           resolve fn args, _ -> {:ok, args.input.text} end
@@ -74,7 +57,32 @@ defmodule RequisCredoChecks.AbsintheMutationInputTest do
     end
     """
     |> to_source_file()
-    |> AbsintheMutationInput.run([])
+    |> AbsintheMutationInput.run()
+    |> refute_issues()
+  end
+
+  test "allows mutations with no input objects" do
+    """
+    defmodule TestModule.Mock do
+      @moduledoc false
+      use Absinthe.Schema.Notation
+
+      object :echo_payload do
+        field :text, :string
+      end
+
+      object :mock_mutations do
+        field :echo, :ecto_payload do
+          resolve fn args, _ -> {:ok, args.input.text} end
+        end
+      end
+
+      object :mock_queries do
+      end
+    end
+    """
+    |> to_source_file()
+    |> AbsintheMutationInput.run()
     |> refute_issues()
   end
 
@@ -93,7 +101,7 @@ defmodule RequisCredoChecks.AbsintheMutationInputTest do
       end
 
       object :mock_mutations_test do
-        field :echo, :ectho_payload do
+        field :echo, :ecto_payload do
           arg :input, non_null(:echo_input)
 
           resolve fn args, _ -> {:ok, args.input.text} end

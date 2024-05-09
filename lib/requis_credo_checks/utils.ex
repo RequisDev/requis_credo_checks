@@ -1,4 +1,4 @@
-defmodule RequisCredoChecks.AbsintheHelpers do
+defmodule RequisCredoChecks.Utils do
   @moduledoc false
 
   @doc false

@@ -33,8 +33,8 @@ Add some or all of these checks under the checks key in .credo.exs
 ```elixir
   checks: [
     # Custom checks
-    {RequisCredoChecks.AbsintheObjectName, []},
-    {RequisCredoChecks.AbsintheMutationUniqueObject, []},
+    {RequisCredoChecks.AbsintheObjectPrefix, []},
+    {RequisCredoChecks.AbsintheMutationPayload, []},
     {RequisCredoChecks.AbsintheMutationInput, []},
     
     # ... all the other checks that come with Credo

@@ -1,9 +1,12 @@
 defmodule RequisCredoChecks.AbsintheMutationInput do
   use Credo.Check,
     base_priority: :high,
-    category: :refactor
+    category: :refactor,
+    param_defaults: [
+      mutation_suffix: "_mutations"
+    ]
 
-  alias RequisCredoChecks.AbsintheHelpers
+  alias RequisCredoChecks.Utils
 
   @moduledoc """
   Use a single, required, unique, input object type as an argument for
@@ -14,10 +17,10 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
   object type.
 
   The reason is that the first style is much easier to use client-side.
-  The client is only required to send one variable with per mutation
-  instead of one for every argument on the mutation.
+  The client is only required to send one variable per mutation instead
+  of one for every argument on the mutation.
 
-  You should do nest the input object as much as possible. In GraphQL
+  You should nest the input object as much as possible. In GraphQL
   schema design nesting is a virtue. For no cost besides a few extra
   keystrokes, nesting allows you to fully embrace GraphQL’s power to
   be your version-less API. Nesting gives you room on your object
@@ -66,14 +69,10 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
   """
   @explanation [check: @moduledoc]
 
-  @check_options [:mutation_suffix]
-
   @doc false
   @impl Credo.Check
   def run(source_file, params \\ []) do
-    {options, params} = Keyword.split(params, @check_options)
-
-    object_suffix = Keyword.get(options, :mutation_suffix, "_mutations")
+    object_suffix = Params.get(params, :mutation_suffix, __MODULE__)
 
     issue_meta = IssueMeta.for(source_file, params)
 
@@ -125,7 +124,7 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
   end
 
   defp traverse_ast(contents, object_suffix) do
-    case AbsintheHelpers.find_object_ast(contents, object_suffix) do
+    case Utils.find_object_ast(contents, object_suffix) do
       nil ->
         []
 
@@ -151,6 +150,7 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
 
             _, acc ->
               acc
+
           end)
           |> :lists.reverse()
 

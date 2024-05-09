@@ -1,9 +1,13 @@
-defmodule RequisCredoChecks.AbsintheMutationUniqueObject do
+defmodule RequisCredoChecks.AbsintheMutationPayload do
   use Credo.Check,
     base_priority: :high,
-    category: :refactor
+    category: :refactor,
+    param_defaults: [
+      mutation_suffix: "_mutations",
+      field_suffix: "_payload"
+    ]
 
-  alias RequisCredoChecks.AbsintheHelpers
+  alias RequisCredoChecks.Utils
 
   @moduledoc """
   Use a unique payload type for each mutation and add the mutation’s output
@@ -18,7 +22,7 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObject do
   the future, and if you choose to return only a single type now you remove
   the future possibility to add other return types or metadata to the
   mutation. Preemptively removing design space is not something you want to
-  do when designing a versionless GraphQL API.
+  do when designing a version-less GraphQL API.
 
   For example:
 
@@ -60,15 +64,11 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObject do
   """
   @explanation [check: @moduledoc]
 
-  @check_options [:mutation_suffix, :field_suffix]
-
   @doc false
   @impl Credo.Check
   def run(source_file, params \\ []) do
-    {options, params} = Keyword.split(params, @check_options)
-
-    object_suffix = Keyword.get(options, :mutation_suffix, "_mutations")
-    field_suffix = Keyword.get(options, :field_suffix, "_payload")
+    object_suffix = Params.get(params, :mutation_suffix, __MODULE__)
+    field_suffix = Params.get(params, :field_suffix, __MODULE__)
 
     issue_meta = IssueMeta.for(source_file, params)
 
@@ -106,7 +106,7 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObject do
   end
 
   defp traverse_ast(contents, object_suffix, field_suffix) do
-    case AbsintheHelpers.find_object_ast(contents, object_suffix) do
+    case Utils.find_object_ast(contents, object_suffix) do
       nil ->
         []
 
