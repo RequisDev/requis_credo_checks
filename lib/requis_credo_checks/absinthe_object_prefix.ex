@@ -2,7 +2,9 @@ defmodule RequisCredoChecks.AbsintheObjectPrefix do
   use Credo.Check,
     base_priority: :high,
     category: :refactor,
-    param_defaults: [],
+    param_defaults: [
+      exclude_modules: []
+    ],
     explanations: [
       params: [
         exclude_modules: """
@@ -17,9 +19,6 @@ defmodule RequisCredoChecks.AbsintheObjectPrefix do
         1. [:RequisCredoChecks, :AbsintheObjectPrefix]
         2. [:RequisCredoChecks]
         3. [:AbsintheObjectPrefix]
-        """,
-        prefix: """
-        Specifies the
         """
       ]
     ]
