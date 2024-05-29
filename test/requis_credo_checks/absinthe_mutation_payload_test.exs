@@ -1,7 +1,7 @@
-defmodule RequisCredoChecks.AbsintheMutationUniqueObjectTest do
+defmodule RequisCredoChecks.AbsintheMutationPayloadTest do
   use Credo.Test.Case, async: true
 
-  alias RequisCredoChecks.AbsintheMutationUniqueObject
+  alias RequisCredoChecks.AbsintheMutationPayload
 
   test "rejects mutations that do not have a unique payload object" do
     """
@@ -25,7 +25,7 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObjectTest do
     end
     """
     |> to_source_file()
-    |> AbsintheMutationUniqueObject.run([])
+    |> AbsintheMutationPayload.run()
     |> assert_issues()
   end
 
@@ -50,7 +50,7 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObjectTest do
     end
     """
     |> to_source_file()
-    |> AbsintheMutationUniqueObject.run([])
+    |> AbsintheMutationPayload.run()
     |> refute_issues()
   end
 
@@ -75,10 +75,7 @@ defmodule RequisCredoChecks.AbsintheMutationUniqueObjectTest do
     end
     """
     |> to_source_file()
-    |> AbsintheMutationUniqueObject.run(
-      mutation_suffix: "_mutations_test",
-      field_suffix: "_response"
-    )
+    |> AbsintheMutationPayload.run(mutation_suffix: "_mutations_test", field_suffix: "_response")
     |> refute_issues()
   end
 end

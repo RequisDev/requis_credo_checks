@@ -1,9 +1,35 @@
 defmodule RequisCredoChecks.AbsintheMutationInput do
   use Credo.Check,
     base_priority: :high,
-    category: :refactor
+    category: :refactor,
+    param_defaults: [
+      exclude_mutations: [],
+      mutation_suffix: "_mutations"
+    ],
+    explanations: [
+      params: [
+        exclude_mutations: """
+        The mutations to skip.
 
-  alias RequisCredoChecks.AbsintheHelpers
+        Each entry must be a tuple of `{module, mutations}`.
+
+        The `module` argument must be a list of atoms. A list of atoms can contain the whole
+        list for a module name or a part of a module name.
+
+        i.e. to whitelist `RequisCredoChecks.AbsintheObjectPrefix`
+        the following 3 options will work:
+
+        1. [:RequisCredoChecks, :AbsintheObjectPrefix]
+        2. [:RequisCredoChecks]
+        3. [:AbsintheObjectPrefix]
+
+        The `mutations` argument must be a list of atoms where each atom is the module name.
+        """,
+        mutation_suffix: "The suffix of the root mutation object name."
+      ]
+    ]
+
+  alias RequisCredoChecks.Utils
 
   @moduledoc """
   Use a single, required, unique, input object type as an argument for
@@ -14,10 +40,10 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
   object type.
 
   The reason is that the first style is much easier to use client-side.
-  The client is only required to send one variable with per mutation
-  instead of one for every argument on the mutation.
+  The client is only required to send one variable per mutation instead
+  of one for every argument on the mutation.
 
-  You should do nest the input object as much as possible. In GraphQL
+  You should nest the input object as much as possible. In GraphQL
   schema design nesting is a virtue. For no cost besides a few extra
   keystrokes, nesting allows you to fully embrace GraphQL’s power to
   be your version-less API. Nesting gives you room on your object
@@ -66,19 +92,21 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
   """
   @explanation [check: @moduledoc]
 
-  @check_options [:mutation_suffix]
-
   @doc false
   @impl Credo.Check
   def run(source_file, params \\ []) do
-    {options, params} = Keyword.split(params, @check_options)
-
-    object_suffix = Keyword.get(options, :mutation_suffix, "_mutations")
+    object_suffix = Params.get(params, :mutation_suffix, __MODULE__)
+    exclude_mutations = Params.get(params, :exclude_mutations, __MODULE__)
 
     issue_meta = IssueMeta.for(source_file, params)
 
+    context = %{
+      object_suffix: object_suffix,
+      exclude_mutations: exclude_mutations
+    }
+
     source_file
-    |> Credo.Code.prewalk(&traverse(&1, &2, object_suffix))
+    |> Credo.Code.prewalk(&traverse(&1, &2, context))
     |> Enum.map(&issue_for(&1, issue_meta))
   end
 
@@ -87,18 +115,31 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
            :defmodule,
            _,
            [
-             {:__aliases__, _, _module_aliases},
+             {:__aliases__, _, module_aliases},
              [
                do: {:__block__, [], contents}
              ]
            ]
          } = ast,
          issues,
-         object_suffix
+         %{
+           object_suffix: object_suffix,
+           exclude_mutations: exclude_mutations
+         }
        ) do
+    exclude_mutations =
+      if value =
+           Enum.find(exclude_mutations, fn {module, _} ->
+             Utils.sublist?(module_aliases, module)
+           end) do
+        elem(value, 1)
+      else
+        []
+      end
+
     lines =
       contents
-      |> traverse_ast(object_suffix)
+      |> traverse_ast(object_suffix, exclude_mutations)
       |> Enum.reject(&is_nil/1)
       |> recurse_combinations()
 
@@ -110,11 +151,49 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
     {ast, issues}
   end
 
+  defp traverse_ast(contents, object_suffix, exclude_mutations) do
+    case Utils.find_object_ast(contents, object_suffix) do
+      nil ->
+        []
+
+      {:object, _meta, [_object_name, [{:do, {:__block__, _, mutation_contents}}]]} ->
+        traverse_mutation_ast(mutation_contents, exclude_mutations)
+
+      {:object, _meta, [_object_name, [{:do, mutation_content}]]} ->
+        traverse_mutation_ast([mutation_content], exclude_mutations)
+    end
+  end
+
+  defp traverse_mutation_ast(mutation_contents, exclude_mutations) do
+    Enum.map(mutation_contents, fn
+      {:field, meta, [field_name, _field_type, [{:do, {:__block__, _, contents}}]]} ->
+        if Enum.member?(exclude_mutations, field_name) === false do
+          {meta[:line], check_mutation_arguments(contents)}
+        end
+
+      _ ->
+        nil
+    end)
+  end
+
+  defp check_mutation_arguments(contents) do
+    contents
+    |> Enum.reduce([], fn
+      {:arg, _meta, [arg_name, {:non_null, _, _}]}, acc ->
+        [{:arg, arg_name, :non_null} | acc]
+
+      {:arg, _meta, [arg_name, _]}, acc ->
+        [{:arg, arg_name, nil} | acc]
+
+      _, acc ->
+        acc
+    end)
+    |> :lists.reverse()
+  end
+
   defp recurse_combinations(combos, lines \\ [])
 
-  defp recurse_combinations([], lines) do
-    lines
-  end
+  defp recurse_combinations([], lines), do: lines
 
   defp recurse_combinations([{_line, [{:arg, :input, :non_null}]} | tail], lines) do
     recurse_combinations(tail, lines)
@@ -122,43 +201,6 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
 
   defp recurse_combinations([{line, _} | tail], lines) do
     recurse_combinations(tail, [line | lines])
-  end
-
-  defp traverse_ast(contents, object_suffix) do
-    case AbsintheHelpers.find_object_ast(contents, object_suffix) do
-      nil ->
-        []
-
-      {:object, _meta, [_object_name, [{:do, {:__block__, _, mutation_contents}}]]} ->
-        traverse_field_ast(mutation_contents)
-
-      {:object, _meta, [_object_name, [{:do, mutation_content}]]} ->
-        traverse_field_ast([mutation_content])
-    end
-  end
-
-  defp traverse_field_ast(mutation_contents) do
-    Enum.map(mutation_contents, fn
-      {:field, meta, [_field_name, _field_type, [{:do, {:__block__, _, contents}}]]} ->
-        args =
-          contents
-          |> Enum.reduce([], fn
-            {:arg, _meta, [arg_name, {:non_null, _, _}]}, acc ->
-              [{:arg, arg_name, :non_null} | acc]
-
-            {:arg, _meta, [arg_name, _]}, acc ->
-              [{:arg, arg_name, nil} | acc]
-
-            _, acc ->
-              acc
-          end)
-          |> :lists.reverse()
-
-        {meta[:line], args}
-
-      _ ->
-        nil
-    end)
   end
 
   defp issue_for(line, issue_meta) do
