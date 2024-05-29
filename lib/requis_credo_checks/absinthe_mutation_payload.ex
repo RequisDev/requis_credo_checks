@@ -5,6 +5,12 @@ defmodule RequisCredoChecks.AbsintheMutationPayload do
     param_defaults: [
       mutation_suffix: "_mutations",
       field_suffix: "_payload"
+    ],
+    explanations: [
+      params: [
+        field_suffix: "The suffix of the mutation name.",
+        mutation_suffix: "The suffix of the root mutation object name."
+      ]
     ]
 
   alias RequisCredoChecks.Utils
@@ -72,8 +78,13 @@ defmodule RequisCredoChecks.AbsintheMutationPayload do
 
     issue_meta = IssueMeta.for(source_file, params)
 
+    context = %{
+      object_suffix: object_suffix,
+      field_suffix: field_suffix
+    }
+
     source_file
-    |> Credo.Code.prewalk(&traverse(&1, &2, object_suffix, field_suffix))
+    |> Credo.Code.prewalk(&traverse(&1, &2, context))
     |> Enum.map(&issue_for(&1, issue_meta))
   end
 
@@ -89,8 +100,10 @@ defmodule RequisCredoChecks.AbsintheMutationPayload do
            ]
          } = ast,
          issues,
-         object_suffix,
-         field_suffix
+         %{
+           object_suffix: object_suffix,
+           field_suffix: field_suffix
+         }
        ) do
     lines =
       contents
@@ -101,7 +114,7 @@ defmodule RequisCredoChecks.AbsintheMutationPayload do
   end
 
   # Non-failing function head
-  defp traverse(ast, issues, _, _) do
+  defp traverse(ast, issues, _) do
     {ast, issues}
   end
 
@@ -111,14 +124,14 @@ defmodule RequisCredoChecks.AbsintheMutationPayload do
         []
 
       {:object, _meta, [_object_name, [{:do, {:__block__, _, mutation_contents}}]]} ->
-        traverse_field_ast(mutation_contents, field_suffix)
+        traverse_mutation_ast(mutation_contents, field_suffix)
 
       {:object, _meta, [_object_name, [{:do, mutation_content}]]} ->
-        traverse_field_ast([mutation_content], field_suffix)
+        traverse_mutation_ast([mutation_content], field_suffix)
     end
   end
 
-  defp traverse_field_ast(mutation_contents, field_suffix) do
+  defp traverse_mutation_ast(mutation_contents, field_suffix) do
     Enum.map(mutation_contents, fn
       {:field, meta, [field_name, field_type, _]} when is_atom(field_type) ->
         field_name = Atom.to_string(field_name)

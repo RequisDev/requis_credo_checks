@@ -8,7 +8,7 @@ defmodule RequisCredoChecks.AbsintheObjectPrefix do
     explanations: [
       params: [
         exclude_modules: """
-        The modules that are blacklisted.
+        The modules to skip.
 
         Each module is represented by a list of atoms. A list of atoms can contain the
         whole list for a module name or a part of a module name.
@@ -22,6 +22,8 @@ defmodule RequisCredoChecks.AbsintheObjectPrefix do
         """
       ]
     ]
+
+  alias RequisCredoChecks.Utils
 
   @moduledoc """
   Use a noun before the verb when naming objects.
@@ -65,8 +67,10 @@ defmodule RequisCredoChecks.AbsintheObjectPrefix do
 
     issue_meta = IssueMeta.for(source_file, params)
 
+    context = %{exclude_modules: exclude_modules}
+
     source_file
-    |> Credo.Code.prewalk(&traverse(&1, &2, %{exclude_modules: exclude_modules}))
+    |> Credo.Code.prewalk(&traverse(&1, &2, context))
     |> Enum.map(&issue_for(&1, issue_meta))
   end
 
@@ -84,7 +88,7 @@ defmodule RequisCredoChecks.AbsintheObjectPrefix do
          issues,
          %{exclude_modules: exclude_modules}
        ) do
-    if Enum.any?(exclude_modules, &sublist?(module_aliases, &1)) do
+    if Enum.any?(exclude_modules, &Utils.sublist?(module_aliases, &1)) do
       {ast, issues}
     else
       prefix = module_aliases |> List.last() |> Atom.to_string() |> Macro.underscore()
@@ -124,7 +128,4 @@ defmodule RequisCredoChecks.AbsintheObjectPrefix do
       line_no: line
     )
   end
-
-  defp sublist?([], _), do: false
-  defp sublist?([_ | t] = list, prefix), do: List.starts_with?(list, prefix) or sublist?(t, prefix)
 end

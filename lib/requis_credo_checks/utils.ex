@@ -2,6 +2,11 @@ defmodule RequisCredoChecks.Utils do
   @moduledoc false
 
   @doc false
+  @spec sublist?(list(), list()) :: true | false
+  def sublist?([], _), do: false
+  def sublist?([_ | t] = list, prefix), do: List.starts_with?(list, prefix) or sublist?(t, prefix)
+
+  @doc false
   @spec find_object_ast(term, String.t()) :: nil | term
   def find_object_ast(contents, suffix) do
     suffix = String.reverse(suffix)
