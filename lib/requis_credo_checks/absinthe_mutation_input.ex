@@ -168,26 +168,27 @@ defmodule RequisCredoChecks.AbsintheMutationInput do
     Enum.map(mutation_contents, fn
       {:field, meta, [field_name, _field_type, [{:do, {:__block__, _, contents}}]]} ->
         if Enum.member?(exclude_mutations, field_name) === false do
-          args =
-            contents
-            |> Enum.reduce([], fn
-              {:arg, _meta, [arg_name, {:non_null, _, _}]}, acc ->
-                [{:arg, arg_name, :non_null} | acc]
-
-              {:arg, _meta, [arg_name, _]}, acc ->
-                [{:arg, arg_name, nil} | acc]
-
-              _, acc ->
-                acc
-            end)
-            |> :lists.reverse()
-
-          {meta[:line], args}
+          {meta[:line], check_mutation_arguments(contents)}
         end
 
       _ ->
         nil
     end)
+  end
+
+  defp check_mutation_arguments(contents) do
+    contents
+    |> Enum.reduce([], fn
+      {:arg, _meta, [arg_name, {:non_null, _, _}]}, acc ->
+        [{:arg, arg_name, :non_null} | acc]
+
+      {:arg, _meta, [arg_name, _]}, acc ->
+        [{:arg, arg_name, nil} | acc]
+
+      _, acc ->
+        acc
+    end)
+    |> :lists.reverse()
   end
 
   defp recurse_combinations(combos, lines \\ [])

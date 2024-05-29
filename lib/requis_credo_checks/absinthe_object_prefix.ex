@@ -91,27 +91,7 @@ defmodule RequisCredoChecks.AbsintheObjectPrefix do
     if Enum.any?(exclude_modules, &Utils.sublist?(module_aliases, &1)) do
       {ast, issues}
     else
-      prefix = module_aliases |> List.last() |> Atom.to_string() |> Macro.underscore()
-
-      regex = Regex.compile!("^#{prefix}")
-
-      lines =
-        contents
-        |> Enum.map(fn
-          {:object, meta, [name, _]} ->
-            if !Regex.match?(regex, Atom.to_string(name)) do
-              meta[:line]
-            end
-
-          {:input_object, meta, [name, _]} ->
-            if !Regex.match?(regex, Atom.to_string(name)) do
-              meta[:line]
-            end
-
-          _ ->
-            nil
-        end)
-        |> Enum.reject(&is_nil/1)
+      lines = check_object_prefixes(contents, module_aliases)
 
       {ast, issues ++ lines}
     end
@@ -120,6 +100,28 @@ defmodule RequisCredoChecks.AbsintheObjectPrefix do
   # Non-failing function head
   defp traverse(ast, issues, _) do
     {ast, issues}
+  end
+
+  defp check_object_prefixes(contents, module_aliases) do
+    prefix = module_aliases |> List.last() |> Atom.to_string() |> Macro.underscore()
+    regex = Regex.compile!("^#{prefix}")
+
+    contents
+    |> Enum.map(fn
+      {:object, meta, [name, _]} ->
+        if !Regex.match?(regex, Atom.to_string(name)) do
+          meta[:line]
+        end
+
+      {:input_object, meta, [name, _]} ->
+        if !Regex.match?(regex, Atom.to_string(name)) do
+          meta[:line]
+        end
+
+      _ ->
+        nil
+    end)
+    |> Enum.reject(&is_nil/1)
   end
 
   defp issue_for(line, issue_meta) do
