@@ -66,8 +66,8 @@
       #
       checks: [
         # Custom Credo Checks
-        {RequisCredoChecks.AbsintheObjectName, []},
-        {RequisCredoChecks.AbsintheMutationUniqueObject, []},
+        {RequisCredoChecks.AbsintheObjectPrefix, []},
+        {RequisCredoChecks.AbsintheMutationPayload, []},
         {RequisCredoChecks.AbsintheMutationInput, []},
 
         #
