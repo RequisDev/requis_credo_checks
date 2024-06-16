@@ -55,7 +55,7 @@ defmodule RequisCredoChecks.MixProject do
       {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
       {:doctor, "~> 0.21.0", only: :test},
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:blitz_credo_checks, "~> 0.1", only: [:dev, :test], runtime: false},
+      {:blitz_credo_checks, "~> 0.1", only: [:dev, :test], runtime: false, optional: true},
       {:absinthe, "~> 1.7", optional: true}
     ]
   end
