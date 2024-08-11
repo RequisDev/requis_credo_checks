@@ -49,14 +49,15 @@ defmodule RequisCredoChecks.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:absinthe, "~> 1.0"},
+
+      {:credo, "~> 1.4", runtime: false},
+      {:blitz_credo_checks, "~> 0.1", runtime: false, optional: true},
       {:ex_check, "~> 0.12", only: :test, runtime: false},
       {:dialyxir, "~> 1.0", only: :test, runtime: false},
       {:excoveralls, "~> 0.13", only: :test, runtime: false},
       {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
-      {:doctor, "~> 0.21.0", only: :test},
-      {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:blitz_credo_checks, "~> 0.1", only: [:dev, :test], runtime: false, optional: true},
-      {:absinthe, "~> 1.7", optional: true}
+      {:doctor, "~> 0.21.0", only: :test}
     ]
   end
 
